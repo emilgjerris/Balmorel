@@ -11,7 +11,7 @@ SCALAR IBALVERSN 'This version of Balmorel' /503.20240622/;
 * Hopefully it will be applied in that spirit.
 
 * All GAMS code of the Balmorel model is distributed under ICS license,
-* see the license file in the base/model folder.
+* see the license file in the base/model folder..
 
 
 *-------------------------------------------------------------------------------
