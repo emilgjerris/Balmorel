@@ -235,8 +235,53 @@ PARAMETER VFLOWCCU_C(Y,C,PROCSOURCE,FLOW)   "CO2 utilized from Balmorel";
 VFLOWCCU_C(Y,C,PROCSOURCE,FLOW) = SUM(IA$(ICA(C,IA)), VFLOWCCU_A(Y,IA,PROCSOURCE,FLOW));
 
 * RE-fuel prices
-Parameter RE_fuel_Price(Y,C,PROC,FLOW)'RE-fuel price (� 2015/GJ)';
+Parameter RE_fuel_Price(Y,C,PROC,FLOW)'RE-fuel price (  2015/GJ)';
 RE_fuel_Price(Y,C,PROC,FLOW)=QMINFLOW_C.M(Y,C,PROC,FLOW) / IWEIGHTY(Y);
+
+* === Net CO2 emissions (tons/year) per country ===
+Parameter CO2_balance(Y,C) 'Net CO2 emissions per country (tons)';
+CO2_balance(Y,C) = 0;
+
+* 1. Fossil emissions
+CO2_balance(Y,C) = CO2_balance(Y,C)
++ SUM((IA,G)$(ICA(C,IA) AND IAGK_HASORPOT(Y,IA,G)),
+    SUM((IS3,T),
+        IHOURSINST(IS3,T) * IHOURFRAC * IM_CO2(G) * IOF0001 * IOF3P6 * VGF_T.L(Y,IA,G,IS3,T)
+    )
+);
+
+* 2. Subtract CCS captured CO2
+CO2_balance(Y,C) = CO2_balance(Y,C)
+- SUM((IA,G)$(ICA(C,IA) AND IAGK_HASORPOT(Y,IA,G)),
+    SUM((IS3,T),
+        IHOURSINST(IS3,T) * IHOURFRAC * (IM_CO2(G) + IM_CO2RE(G)) * IOF0001 * IOF3P6
+        * VGF_T.L(Y,IA,G,IS3,T) * CCS_CO2CAPTEFF_G(G)
+    )
+);
+
+* 3. Subtract CO2 captured in OptiFlow (CCU)
+CO2_balance(Y,C) = CO2_balance(Y,C)
+- SUM((IA,IPROCFROM,IPROCTO,FLOW)$(
+       ICA(C,IA) AND ICO2_CC(IPROCFROM,FLOW) AND FLOWFROMTOPROC(Y,IA,IPROCFROM,IPROCTO,FLOW)
+    ),
+    SUM((IS3,T),
+        IHOURSINST(IS3,T) * IHOURFRAC * VFLOW.L(Y,IA,IPROCFROM,IPROCTO,FLOW,IS3,T)
+    )
+);
+
+* 4. Optionally re-add CO2 used for CU
+* Set to 0 to skip CU
+SCALAR doCUflag /0/; 
+CO2_balance(Y,C) = CO2_balance(Y,C)
++ doCUflag *
+  SUM((IA,IPROCFROM,IPROCTO,FLOW)$(
+       ICA(C,IA) AND ICO2_CU(IPROCFROM,FLOW) AND FLOWFROMTOPROC(Y,IA,IPROCFROM,IPROCTO,FLOW)
+    ),
+    SUM((IS3,T),
+        IHOURSINST(IS3,T) * IHOURFRAC * VFLOW.L(Y,IA,IPROCFROM,IPROCTO,FLOW,IS3,T)
+    )
+);
+
 
 
 
@@ -264,7 +309,7 @@ RE_fuel_Price
 *DH_PRICE_YCRAST, DH_PRICE_YCRA
 PRO_YCRAGFST, PRO_YCRAGF
 *Hproduction_AST_Opti, Hproduction_A_Opti
-VFLOWSTORAGE_Opti_A,VFLOWSTORAGE_Opti_C
+VFLOWSTORAGE_Opti_A,VFLOWSTORAGE_Opti_C, CO2_balance
 *MASON
 
 
