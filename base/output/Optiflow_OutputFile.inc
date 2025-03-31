@@ -239,7 +239,7 @@ Parameter RE_fuel_Price(Y,C,PROC,FLOW)'RE-fuel price (  2015/GJ)';
 RE_fuel_Price(Y,C,PROC,FLOW)=QMINFLOW_C.M(Y,C,PROC,FLOW) / IWEIGHTY(Y);
 
 * === Net CO2 emissions (tons/year) per country ===
-Parameter CO2_balance(Y,C) 'Net CO2 emissions per country (tons)';
+Parameter CO2_balance(Y,C) 'NOT FINISHED Net CO2 emissions per country (tons)';
 CO2_balance(Y,C) = 0;
 
 * 1. Fossil emissions
