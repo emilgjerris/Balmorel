@@ -685,7 +685,21 @@ $if not EXIST '../data/OPTIFLOW_PROCTECHTYPE.inc' $INCLUDE '../../base/data/OPTI
 %semislash%;
 
 
+* Nyt fra A og E 25/03/2025
+Set NEGPOLFLOW(IPROCTO,IPROCFROM,FLOW) "Type of technology aggrigated"  %semislash%;
+$if     EXIST '../data/OPTIFLOW_NEGPOLFLOW.inc' $INCLUDE         '../data/OPTIFLOW_NEGPOLFLOW.inc';
+$if not EXIST '../data/OPTIFLOW_NEGPOLFLOW.inc' $INCLUDE '../../base/data/OPTIFLOW_NEGPOLFLOW.inc';
+%semislash%;
 
+Set NEGPOL_Y_C(YYY,CCC) "Type of technology aggrigated"  %semislash%;
+$if     EXIST '../data/OPTIFLOW_NEGPOL_Y_C.inc' $INCLUDE         '../data/OPTIFLOW_NEGPOL_Y_C.inc';
+$if not EXIST '../data/OPTIFLOW_NEGPOL_Y_C.inc' $INCLUDE '../../base/data/OPTIFLOW_NEGPOL_Y_C.inc';
+%semislash%;
+
+PARAMETER REBATEFRAC_Y(YYY) "Type of technology aggrigated"  %semislash%;
+$if     EXIST '../data/OPTIFLOW_REBATEFRAC_Y.inc' $INCLUDE         '../data/OPTIFLOW_REBATEFRAC_Y.inc';
+$if not EXIST '../data/OPTIFLOW_REBATEFRAC_Y.inc' $INCLUDE '../../base/data/OPTIFLOW_REBATEFRAC_Y.inc';
+%semislash%;
 
 
 

@@ -42,8 +42,79 @@
 * If Balmorel Carbon Capture is used in a fuel, then remove the transport cost again paid for in the CCS addon.
 $ifi %baloptCCU%==yes $ifi %CCS%==yes - SUM(IA$(AAAOPTIFLOW(IA)), SUM((IS3,T), SUM((PROCSOURCE,FLOW)$(ICO2(PROCSOURCE,FLOW)),IHOURSINST(IS3,T) * VFLOWSOURCE(Y,IA,PROCSOURCE,FLOW,IS3,T))) *CCS_TRANSPORTCOST )
 
-+ SUM((C,GROUP), SUM((IA,PROCSOURCE,FLOW)$(ICA(C,IA) AND PROC_T(PROCSOURCE) AND SOSIBU2INDIC(Y,PROCSOURCE,FLOW,'GHGEMISSION_nonbio')),  SUM((IS3,T), IHOURSINST(IS3,T) * VFLOWSOURCE(Y,IA,PROCSOURCE,FLOW,IS3,T)$(SUM(IPROCTO,FLOWFROMTOPROC(Y,IA,PROCSOURCE,IPROCTO,FLOW))))* SOSIBU2INDIC(Y,PROCSOURCE,FLOW,'GHGEMISSION_nonbio')) * EMI_POL(Y,C,GROUP,"TAX_CO2"))
++ SUM((C,GROUP), SUM((IA,PROCSOURCE,FLOW)$(ICA(C,IA)
+                            AND PROC_T(PROCSOURCE)
+                            AND SOSIBU2INDIC(Y,PROCSOURCE,FLOW,'GHGEMISSION_nonbio')),
+        SUM((IS3,T), IHOURSINST(IS3,T)
+            * VFLOWSOURCE(Y,IA,PROCSOURCE,FLOW,IS3,T)$(SUM(IPROCTO,FLOWFROMTOPROC(Y,IA,PROCSOURCE,IPROCTO,FLOW))))
+            * SOSIBU2INDIC(Y,PROCSOURCE,FLOW,'GHGEMISSION_nonbio')) * EMI_POL(Y,C,GROUP,"TAX_CO2"))
 
+
+*------------------------------------------------------------
+* NEGATIVE COST / REBATE FOR BIOGENIC CO2 SENT TO SEQUESTRATION (with FLOWFROMTOPROC)
+*------------------------------------------------------------
+ 
+
+$ontext
+*********** Første der virkede
+* Rebate objective term: refund of CO2 tax for biogenic CO2 sent to sequestration
+* Rebate objective term: refund of CO2 tax for biogenic CO2 sent to sequestration
+- SUM((C, GROUP,
+      IA, IPROCFROM, IPROCTO, FLOW)$(ICA(C,IA)
+                                   AND FLOWFROMTOPROC(Y,IA,IPROCFROM,IPROCTO,FLOW)
+                                   AND SAMEAS(IPROCFROM, "CO2_Grid_Out")
+                                   AND SAMEAS(IPROCTO, "CO2_Seq")
+                                   AND SAMEAS(FLOW, "CO2_FLOW_BIOGEN_SEQ")),
+    SUM((IY411,IS3,T),
+        VFLOW(IY411,IA, IPROCFROM, IPROCTO, FLOW, IS3, T)
+        * IHOURSINST(IS3,T)
+        * EMI_POL(Y,C,GROUP,"TAX_CO2")
+        * 10
+    )
+)
+$offtext
+*********** Anden der virkede
+- SUM((C, GROUP,
+      IA, IPROCFROM, IPROCTO, FLOW)$(ICA(C,IA)
+                                   AND FLOWFROMTOPROC(Y,IA,IPROCFROM,IPROCTO,FLOW)
+                                   AND NEGPOLFLOW(IPROCFROM, IPROCTO, FLOW)
+                                   AND NEGPOL_Y_C(Y,C)),
+    SUM((IY411,IS3,T),
+        VFLOW(IY411,IA, IPROCFROM, IPROCTO, FLOW, IS3, T)
+        * IHOURSINST(IS3,T)
+        * EMI_POL(Y,C,GROUP,"TAX_CO2")
+        * REBATEFRAC_Y(Y)
+    )
+)
+$ontext
+
+*Det her lort burde virker
+- SUM((C, GROUP,
+      IA, IPROCFROM, IPROCTO, FLOW)$(ICA(C,IA)
+                                   AND FLOWFROMTOPROC(Y,IA,IPROCFROM,IPROCTO,FLOW)
+                                   AND NEGPOLFLOW(IPROCFROM, IPROCTO, FLOW)
+                                   AND NEGPOL_Y_C(Y,C)),
+    SUM((IY411, IS3, T),
+        VFLOW(IY411, IA, IPROCFROM, IPROCTO, FLOW, IS3, T)
+        * IHOURSINST(IS3, T)
+        * EMI_POL(Y, C, GROUP, "TAX_CO2")
+        * REBATEFRAC
+    )
+)
+
+
+$ontext
+* Refund CO2 tax for biogenic CO2 sequestration
+- SUM((C,GROUP), 
+    SUM((IA,PROCSOURCE,FLOW)$(ICA(C,IA) 
+                              AND PROC_T(PROCSOURCE) 
+                              AND FLOWFROMTOPROC(Y,IA,PROCSOURCE,'CO2_Seq','CO2_FLOW_BIOGEN_SEQ') 
+                              AND SOSIBU2INDIC(Y,PROCSOURCE,FLOW,'GHGEMISSION_bio')), 
+        SUM((IS3,T), IHOURSINST(IS3,T) 
+            * VFLOWSOURCE(Y,IA,PROCSOURCE,FLOW,IS3,T)) 
+        * EMI_POL(Y,C,GROUP,"TAX_CO2") * CCS_BIOSEQREFUNDFAC))
+
+$offtext
 $ontext
 
     + SUM((IA,PROC)$IAPROCKAPNEW(Y,IA,PROC),
