@@ -696,12 +696,6 @@ $if     EXIST '../data/OPTIFLOW_NEGPOL_Y_C.inc' $INCLUDE         '../data/OPTIFL
 $if not EXIST '../data/OPTIFLOW_NEGPOL_Y_C.inc' $INCLUDE '../../base/data/OPTIFLOW_NEGPOL_Y_C.inc';
 %semislash%;
 
-PARAMETER REBATEFRAC_Y(YYY) "Type of technology aggrigated"  %semislash%;
-$if     EXIST '../data/OPTIFLOW_REBATEFRAC_Y.inc' $INCLUDE         '../data/OPTIFLOW_REBATEFRAC_Y.inc';
-$if not EXIST '../data/OPTIFLOW_REBATEFRAC_Y.inc' $INCLUDE '../../base/data/OPTIFLOW_REBATEFRAC_Y.inc';
-%semislash%;
-
-
 
 
 
