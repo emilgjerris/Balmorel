@@ -73,6 +73,23 @@ $ontext
     )
 )
 $offtext
+
+- SUM((C, GROUP, IA, IPROCFROM, IPROCTO, FLOW)$(ICA(C,IA)
+     AND FLOWFROMTOPROC(Y,IA,IPROCFROM,IPROCTO,FLOW)
+     AND NEGPOLFLOW(IPROCFROM, IPROCTO, FLOW)
+     AND NEGPOL_Y_C(Y,C) > 0), 
+  SUM((IY411,IS3,T),
+      VFLOW(IY411,IA, IPROCFROM, IPROCTO, FLOW, IS3, T)
+      * IHOURSINST(IS3,T)
+      * EMI_POL(Y,C,GROUP,"TAX_CO2")
+      * NEGPOL_Y_C(Y,C)
+  )
+)
+
+
+
+$ontext
+
 *********** Anden der virkede
 - SUM((C, GROUP,
       IA, IPROCFROM, IPROCTO, FLOW)$(ICA(C,IA)
@@ -86,7 +103,7 @@ $offtext
         * REBATEFRAC_Y(Y)
     )
 )
-$ontext
+
 
 *Det her lort burde virker
 - SUM((C, GROUP,

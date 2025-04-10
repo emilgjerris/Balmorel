@@ -691,7 +691,7 @@ $if     EXIST '../data/OPTIFLOW_NEGPOLFLOW.inc' $INCLUDE         '../data/OPTIFL
 $if not EXIST '../data/OPTIFLOW_NEGPOLFLOW.inc' $INCLUDE '../../base/data/OPTIFLOW_NEGPOLFLOW.inc';
 %semislash%;
 
-Set NEGPOL_Y_C(YYY,CCC) "Type of technology aggrigated"  %semislash%;
+PARAMETER NEGPOL_Y_C(YYY,CCC) "Type of technology aggrigated"  %semislash%;
 $if     EXIST '../data/OPTIFLOW_NEGPOL_Y_C.inc' $INCLUDE         '../data/OPTIFLOW_NEGPOL_Y_C.inc';
 $if not EXIST '../data/OPTIFLOW_NEGPOL_Y_C.inc' $INCLUDE '../../base/data/OPTIFLOW_NEGPOL_Y_C.inc';
 %semislash%;
