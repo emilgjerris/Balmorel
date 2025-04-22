@@ -121,12 +121,12 @@ Resource_use_Opti_C(Y,C,TECH_GROUP)=SUM(IA$ICA(C,IA),Resource_use_Opti_A(Y,IA,TE
 
 
 
+$OFFTEXT
 
 *FLOWS
-Parameter VFLOW_Opti_A(Y,AAA,IPROCFROM,IPROCTO,FLOW)   'FLOWS at an area level per year (PJ/year)';
-VFLOW_Opti_A(Y,IA,IPROCFROM,IPROCTO,FLOW)=   SUM((S,T),VFLOW.L(Y,IA,IPROCFROM,IPROCTO,FLOW,S,T)*IHOURSINST(S,T))*IOF0000001;
+Parameter VFLOW_Opti_A_old(Y,AAA,IPROCFROM,IPROCTO,FLOW)   'FLOWS at an area level per year (PJ/year)';
+VFLOW_Opti_A_old(Y,IA,IPROCFROM,IPROCTO,FLOW)=   SUM((S,T),VFLOW.L(Y,IA,IPROCFROM,IPROCTO,FLOW,S,T)*IHOURSINST(S,T))*IOF0000001;
 
-$OFFTEXT
 
 *FLOWS
 Parameter VFLOW_Opti_A(Y,AAA,IPROCFROM,IPROCTO,FLOW)   'FLOWS at an area level per year (PJ/year)';
@@ -248,11 +248,11 @@ RE_fuel_Price(Y,C,PROC,FLOW)=QMINFLOW_C.M(Y,C,PROC,FLOW) / IWEIGHTY(Y);
 
 
 * Declare balance parameter
-PARAMETER P_CO2BALANCE(Y, GROUP) 'Total CO2 balance by year and group (only ALL_SECTORS)';
+PARAMETER P_CO2BALANCE(Y) 'Total CO2 balance by year and group (only ALL_SECTORS)';
 
 LOOP(Y,
 
-  P_CO2BALANCE(Y, 'ALL_SECTORS') =
+  P_CO2BALANCE(Y) =
 
 *1. Fossil emissions
     + SUM(C,
@@ -316,6 +316,99 @@ LOOP(Y,
 
 );
 
+PARAMETER CO2_1(Y) 'Emissions from Balmorel';
+
+LOOP(Y,
+
+  CO2_1(Y) =         
+     SUM(C,
+        SUM((IA,G)$(IAGK_HASORPOT(Y,IA,G) AND ICA(C,IA) AND GROUP_AAA('ALL_SECTORS',IA)),
+          SUM((IS3,T),
+            IHOURSINST(IS3,T) * IHOURFRAC * IM_CO2(G)
+            * IOF0001 * IOF3P6 * VGF_T.L(Y,IA,G,IS3,T)
+          )
+        )
+      )
+);
+
+PARAMETER CO2_2(Y) 'CC in balmorel';
+
+LOOP(Y,
+
+  CO2_2(Y) =         
+      - SUM(C,
+        SUM((IA,G)$(IAGK_HASORPOT(Y,IA,G) AND ICA(C,IA) AND GROUP_AAA('ALL_SECTORS',IA)),
+          SUM((IS3,T),
+            IHOURSINST(IS3,T) * IHOURFRAC * (IM_CO2(G) + IM_CO2RE(G))
+            * IOF0001 * IOF3P6 * VGF_T.L(Y,IA,G,IS3,T)
+            * CCS_CO2CAPTEFF_G(G)
+          )
+        )
+      )
+);
+
+PARAMETER CO2_3(Y) 'CC in optiflow';
+
+LOOP(Y,
+
+  CO2_3(Y) =         
+    - SUM(C,
+        SUM((IA,IPROCFROM,IPROCTO,FLOW)$(
+          ICA(C,IA) AND ICO2_CC(IPROCFROM,FLOW)
+          AND FLOWFROMTOPROC(Y,IA,IPROCFROM,IPROCTO,FLOW)
+        ),
+          SUM((IS3,T),
+            IHOURSINST(IS3,T) * IHOURFRAC * VFLOW.L(Y,IA,IPROCFROM,IPROCTO,FLOW,IS3,T)
+          )
+        )
+      )
+);
+
+PARAMETER CO2_4(Y) 'CO2 to CU';
+
+LOOP(Y,
+
+  CO2_4(Y) =         
+      SUM(C,
+        SUM((IA,IPROCFROM,IPROCTO,FLOW)$(
+          ICA(C,IA) AND ICO2_CU(IPROCFROM,FLOW)
+          AND FLOWFROMTOPROC(Y,IA,IPROCFROM,IPROCTO,FLOW)
+        ),
+          SUM((IS3,T),
+            IHOURSINST(IS3,T) * IHOURFRAC * VFLOW.L(Y,IA,IPROCFROM,IPROCTO,FLOW,IS3,T)
+          )
+        )
+      )
+);
+
+PARAMETER CO2_5(Y) 'All non bio emission in optiflow';
+
+LOOP(Y,
+
+  CO2_5(Y) =
+    VFLOWINDICVALUES.L(Y,'GHGEMISSION_nonbio')
+);
+
+PARAMETER FOSEMI 'fuel demand emissions';
+
+LOOP(Y,
+
+  FOSEMI(Y) =         
+    SUM(C,
+      SUM((IA,PROCSOURCE,FLOW)$(
+          ICA(C,IA)
+          AND PROC_T(PROCSOURCE)
+          AND SOSIBU2INDIC(Y,PROCSOURCE,FLOW,'GHGEMISSION_nonbio')
+        ),
+        SUM((IS3,T),
+          IHOURSINST(IS3,T)
+          * VFLOWSOURCE.L(Y,IA,PROCSOURCE,FLOW,IS3,T)
+          $(SUM(IPROCTO, FLOWFROMTOPROC(Y,IA,PROCSOURCE,IPROCTO,FLOW)))
+        )
+        * SOSIBU2INDIC(Y,PROCSOURCE,FLOW,'GHGEMISSION_nonbio')
+      )
+    )   
+);
 
 
 
@@ -338,6 +431,7 @@ execute_unload "Optiflow_MainResults.gdx" VOBJ,VGKN,VX_T,VXKN,
 VFLOWTRANS,VPROCKAPNEW,VPROCKAPACCUMNET,VFLOWTRANS_Opti_A,VFLOWTRANS_Opti_C,ECO_PROC_YCRAP,OBJ_YCR,ECO_INDIC
 *RE_GasFuel_AST_Opti,RE_Fuel_AST_Opti_A,RE_Fuel_AST_Opti_C,RE_Gas_AST_Opti,RE_Gas_AST_Opti_A,RE_Gas_AST_Opti_C,
 *Resource_use_Opti_C,Resource_use_AST_Opti,Resource_use_Opti_A,
+VFLOW_Opti_A_old
 VFLOW_Opti_A,VFLOW_Opti_C,VFLOWSOURCE_Opti_A,VFLOWSOURCE_Opti_C,VFLOWBUFFER_Opti_C,VFLOWCCU_A,VFLOWCCU_C,EMI_PROC,EMI_YCRAG
 RE_fuel_Price
 *EL_PRICE_YCRST, EL_PRICE_YCR
@@ -351,6 +445,9 @@ MAXFLOW
 MINFLOW
 SOSIBUBOUND
 SOSIBUFLOW_VAR_T
+FOSEMI
+CO2_1, CO2_2, CO2_3, CO2_4, CO2_5
+TRANSCOST
 *MASON
 
 
