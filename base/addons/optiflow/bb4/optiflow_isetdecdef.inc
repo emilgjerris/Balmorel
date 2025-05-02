@@ -27,7 +27,7 @@ IFPROC('BIOGAS','Gas_Buffer')=YES;
 
 $label nogasbridge
 
-*Initializing CO2 sources
+*Initializing CO2 sourcessng
 
 $ifi not %baloptCCU%==yes $goto noCCUopti
 
@@ -45,7 +45,7 @@ ICO2_CC(PROC,FLOW)=0;
 ICO2_CC('CO2_DAC','CO2_FLOW_DAC') = YES;
 ICO2_CC('CO2_Biogas','CO2_FLOW_BIOGAS') = YES;
 ICO2_CC('CO2_Biochar_Sum','CO2_FLOW_BIOCHAR') = YES;
-ICO2_CC('CO2_Biogas','CO2_FLOW_BIOGAS') = YES;
+
 
 *Re-ad CO2 used for CU in OptiFlow
 
