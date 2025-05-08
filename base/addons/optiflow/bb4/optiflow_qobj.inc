@@ -81,7 +81,6 @@ $offtext
   SUM((IY411,IS3,T),
       VFLOW(IY411,IA, IPROCFROM, IPROCTO, FLOW, IS3, T)
       * IHOURSINST(IS3,T)
-      * EMI_POL(Y,C,GROUP,"TAX_CO2")
       * NEGPOL_Y_C(Y,C)
   )
 )
