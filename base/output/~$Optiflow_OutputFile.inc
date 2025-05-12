@@ -124,11 +124,6 @@ Resource_use_Opti_C(Y,C,TECH_GROUP)=SUM(IA$ICA(C,IA),Resource_use_Opti_A(Y,IA,TE
 $OFFTEXT
 
 *FLOWS
-Parameter VFLOW_Opti_A_old(Y,AAA,IPROCFROM,IPROCTO,FLOW)   'FLOWS at an area level per year (PJ/year)';
-VFLOW_Opti_A_old(Y,IA,IPROCFROM,IPROCTO,FLOW)=   SUM((S,T),VFLOW.L(Y,IA,IPROCFROM,IPROCTO,FLOW,S,T)*IHOURSINST(S,T))*IOF0000001;
-
-
-*FLOWS
 Parameter VFLOW_Opti_A(Y,AAA,IPROCFROM,IPROCTO,FLOW)   'FLOWS at an area level per year (PJ/year)';
 VFLOW_Opti_A(Y,IA,IPROCFROM,IPROCTO,FLOW)$(NOT PROC_T(IPROCFROM))=   SUM((S,T),VFLOW.L(Y,IA,IPROCFROM,IPROCTO,FLOW,S,T)*IHOURSINSTWWT(S,T))*IOF0000001;
 VFLOW_Opti_A(Y,IA,IPROCFROM,IPROCTO,FLOW)$(PROC_T(IPROCFROM)) =   SUM((S,T),VFLOW.L(Y,IA,IPROCFROM,IPROCTO,FLOW,S,T)*IHOURSINST(S,T))*IOF0000001;
@@ -248,11 +243,11 @@ RE_fuel_Price(Y,C,PROC,FLOW)=QMINFLOW_C.M(Y,C,PROC,FLOW) / IWEIGHTY(Y);
 
 
 * Declare balance parameter
-PARAMETER P_CO2BALANCE(Y) 'Total CO2 balance by year and group (only ALL_SECTORS)';
+PARAMETER CO2BALANCE(Y) 'Total CO2 balance by year and group (only ALL_SECTORS): Sum of CO2_1,2,3,4,5';
 
 LOOP(Y,
 
-  P_CO2BALANCE(Y) =
+  CO2BALANCE(Y) =
 
 *1. Fossil emissions
     + SUM(C,
@@ -376,11 +371,11 @@ LOOP(Y,
     VFLOWINDICVALUES.L(Y,'GHGEMISSION_nonbio')
 );
 
-PARAMETER CO2 'fuel demand emissions';
+PARAMETER CO2_6(Y) 'Emissions only from fossil fuels in optiflow';
 
 LOOP(Y,
 
-  FOSEMI(Y) =         
+  CO2_6(Y) =         
     SUM(C,
       SUM((IA,PROCSOURCE,FLOW)$(
           ICA(C,IA)
