@@ -300,20 +300,7 @@ LOOP(Y,
       )
 
 * 5. + Emissions from direct fuel input
-    + SUM(C,
-        SUM((IA,PROCSOURCE,FLOW)$(
-          ICA(C,IA) AND PROC_T(PROCSOURCE)
-          AND SOSIBU2INDIC(Y,PROCSOURCE,FLOW,'GHGEMISSION_nonbio')
-        ),
-          SUM((IS3,T),
-            IHOURSINST(IS3,T)
-            * VFLOWSOURCE.L(Y,IA,PROCSOURCE,FLOW,IS3,T)
-            $ (SUM(IPROCTO$(FLOWFROMTOPROC(Y,IA,PROCSOURCE,IPROCTO,FLOW)), 1))
-            * SOSIBU2INDIC(Y,PROCSOURCE,FLOW,'GHGEMISSION_nonbio')
-          )
-        )
-      );
-
+    + VFLOWINDICVALUES.L(Y,'GHGEMISSION_nonbio')
 );
 
 PARAMETER CO2_1(Y) 'Emissions from Balmorel';
