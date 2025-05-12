@@ -248,11 +248,11 @@ RE_fuel_Price(Y,C,PROC,FLOW)=QMINFLOW_C.M(Y,C,PROC,FLOW) / IWEIGHTY(Y);
 
 
 * Declare balance parameter
-PARAMETER CO2BALANCE(Y) 'Total CO2 balance by year and group (only ALL_SECTORS): Sum of CO2_1,2,3,4,5';
+PARAMETER P_CO2BALANCE(Y) 'Total CO2 balance by year and group (only ALL_SECTORS)';
 
 LOOP(Y,
 
-  CO2BALANCE(Y) =
+  P_CO2BALANCE(Y) =
 
 *1. Fossil emissions
     + SUM(C,
@@ -376,11 +376,11 @@ LOOP(Y,
     VFLOWINDICVALUES.L(Y,'GHGEMISSION_nonbio')
 );
 
-PARAMETER CO2_6(Y) 'Emissions only from fossil fuels in optiflow';
+PARAMETER CO2 'fuel demand emissions';
 
 LOOP(Y,
 
-  CO2_6(Y) =         
+  FOSEMI(Y) =         
     SUM(C,
       SUM((IA,PROCSOURCE,FLOW)$(
           ICA(C,IA)
