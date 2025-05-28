@@ -242,6 +242,11 @@ Parameter RE_fuel_Price(Y,C,PROC,FLOW)'RE-fuel price (  2015/GJ)';
 RE_fuel_Price(Y,C,PROC,FLOW)=QMINFLOW_C.M(Y,C,PROC,FLOW) / IWEIGHTY(Y);
 
 
+Parameter CO2_shadowPrice(Y,GROUP) 'CO2 shadow price (Mmoney/ton)';
+CO2_shadowPrice(Y,GROUP) = QLIMCO2NA.M(Y,GROUP) / IWEIGHTY(Y);
+
+
+
 * Declare balance parameter
 PARAMETER CO2BALANCE(Y) 'Total CO2 balance by year and group (only ALL_SECTORS): Sum of CO2_1,2,3,4,5';
 
@@ -429,8 +434,7 @@ SOSIBUFLOW_VAR_T
 CO2_1, CO2_2, CO2_3, CO2_4, CO2_5, CO2_6
 TRANSCOST
 *MASON
-
-
+CO2_shadowPrice
 $ONTEXT
 $if     EXIST '../addons/_hooks/Outputgdx.inc' $INCLUDE      '../addons/_hooks/Outputgdx.inc';
 $if not EXIST '../addons/_hooks/Outputgdx.inc' $INCLUDE '../../base/addons/_hooks/Outputgdx.inc';
