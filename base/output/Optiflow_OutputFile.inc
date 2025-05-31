@@ -301,6 +301,8 @@ LOOP(Y,
 
 * 5. + Emissions from direct fuel input
     + VFLOWINDICVALUES.L(Y,'GHGEMISSION_nonbio')
+
+
 );
 
 PARAMETER CO2_1(Y) 'Emissions from Balmorel';
@@ -399,6 +401,119 @@ LOOP(Y,
 
 
 
+SET
+  EMISSIONTYPE / 
+    'Balmorel Emissions',
+    'Balmorel CCS',
+    'Optiflow CCS',
+    'Used for CU',
+    'Total Optiflow Emissions',
+    'Fossil Emissions in Optiflow',
+    'Total Captured',
+    'Sequestrated',
+    'Transport Emissions',
+    'CU Emissions'
+/;
+
+
+PARAMETER
+  CO2_ALL(Y, EMISSIONTYPE) 'All CO2-related emission components';
+
+LOOP(Y,
+
+* CO2_1: Emissions from Balmorel
+  CO2_ALL(Y,'Balmorel Emissions') =
+    SUM(C,
+      SUM((IA,G)$(IAGK_HASORPOT(Y,IA,G) AND ICA(C,IA) AND GROUP_AAA('ALL_SECTORS',IA)),
+        SUM((IS3,T),
+          IHOURSINST(IS3,T) * IHOURFRAC * IM_CO2(G)
+          * IOF0001 * IOF3P6 * VGF_T.L(Y,IA,G,IS3,T)
+        )
+      )
+    );
+
+* CO2_2: CC in Balmorel
+  CO2_ALL(Y,'Balmorel CCS') =
+    - SUM(C,
+      SUM((IA,G)$(IAGK_HASORPOT(Y,IA,G) AND ICA(C,IA) AND GROUP_AAA('ALL_SECTORS',IA)),
+        SUM((IS3,T),
+          IHOURSINST(IS3,T) * IHOURFRAC * (IM_CO2(G) + IM_CO2RE(G))
+          * IOF0001 * IOF3P6 * VGF_T.L(Y,IA,G,IS3,T)
+          * CCS_CO2CAPTEFF_G(G)
+        )
+      )
+    );
+
+* CO2_3: CC in Optiflow
+  CO2_ALL(Y,'Optiflow CCS') =
+    - SUM(C,
+      SUM((IA,IPROCFROM,IPROCTO,FLOW)$(
+        ICA(C,IA) AND ICO2_CC(IPROCFROM,FLOW)
+        AND FLOWFROMTOPROC(Y,IA,IPROCFROM,IPROCTO,FLOW)
+      ),
+        SUM((IS3,T),
+          IHOURSINST(IS3,T) * IHOURFRAC * VFLOW.L(Y,IA,IPROCFROM,IPROCTO,FLOW,IS3,T)
+        )
+      )
+    );
+
+* CO2_4: CO2 to CU
+  CO2_ALL(Y,'Used for CU') =
+    -SUM(C,
+      SUM((IA,IPROCFROM,IPROCTO,FLOW)$(
+        ICA(C,IA) AND ICO2_CU(IPROCFROM,FLOW)
+        AND FLOWFROMTOPROC(Y,IA,IPROCFROM,IPROCTO,FLOW)
+      ),
+        SUM((IS3,T),
+          IHOURSINST(IS3,T) * IHOURFRAC * VFLOW.L(Y,IA,IPROCFROM,IPROCTO,FLOW,IS3,T)
+        )
+      )
+    );
+
+* CO2_5: All non bio emission in Optiflow
+  CO2_ALL(Y,'Total Optiflow Emissions') =
+    VFLOWINDICVALUES.L(Y,'GHGEMISSION_nonbio');
+
+* CO2_6: Emissions only from fossil fuels in Optiflow
+  CO2_ALL(Y,'Fossil Emissions in Optiflow') =
+    SUM(C,
+      SUM((IA,PROCSOURCE,FLOW)$(
+        ICA(C,IA)
+        AND PROC_T(PROCSOURCE)
+        AND SOSIBU2INDIC(Y,PROCSOURCE,FLOW,'GHGEMISSION_nonbio')
+      ),
+        SUM((IS3,T),
+          IHOURSINST(IS3,T)
+          * VFLOWSOURCE.L(Y,IA,PROCSOURCE,FLOW,IS3,T)
+          $(SUM(IPROCTO, FLOWFROMTOPROC(Y,IA,PROCSOURCE,IPROCTO,FLOW)))
+        )
+        * SOSIBU2INDIC(Y,PROCSOURCE,FLOW,'GHGEMISSION_nonbio')
+      )
+    );
+
+
+* Total Captured = Balmorel CCS + Optiflow CCS
+  CO2_ALL(Y, 'Total Captured') = 
+    CO2_ALL(Y, 'Balmorel CCS') + CO2_ALL(Y, 'Optiflow CCS');
+
+* Sequestrated = Total Captured - Used for CU
+  CO2_ALL(Y, 'Sequestrated') = 
+    CO2_ALL(Y, 'Total Captured') - CO2_ALL(Y, 'Used for CU');
+
+* Transport Emissions = Total Optiflow Emissions - Total Optiflow Emissions
+  CO2_ALL(Y, 'Transport Emissions') = 
+    CO2_ALL(Y, 'Total Optiflow Emissions') - CO2_ALL(Y, 'Fossil Emissions in Optiflow');
+
+* CU Emissions = - 'Used for CU'
+  CO2_ALL(Y, 'CU Emissions') = -CO2_ALL(Y,'Used for CU') 
+    ;
+
+
+
+
+);
+
+
 
 *_______________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 *----Original
@@ -435,6 +550,7 @@ CO2_1, CO2_2, CO2_3, CO2_4, CO2_5, CO2_6
 TRANSCOST
 *MASON
 CO2_shadowPrice
+CO2_ALL
 $ONTEXT
 $if     EXIST '../addons/_hooks/Outputgdx.inc' $INCLUDE      '../addons/_hooks/Outputgdx.inc';
 $if not EXIST '../addons/_hooks/Outputgdx.inc' $INCLUDE '../../base/addons/_hooks/Outputgdx.inc';
